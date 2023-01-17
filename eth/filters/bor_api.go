@@ -4,6 +4,8 @@ import (
 	"bytes"
 	"context"
 	"errors"
+	"fmt"
+	"time"
 
 	ethereum "github.com/ethereum/go-ethereum"
 	"github.com/ethereum/go-ethereum/common"
@@ -52,7 +54,10 @@ func (api *PublicFilterAPI) GetBorBlockLogs(ctx context.Context, crit FilterCrit
 }
 
 // NewDeposits send a notification each time a new deposit received from bridge.
-func (api *PublicFilterAPI) NewDeposits(ctx context.Context, crit ethereum.StateSyncFilter) (*rpc.Subscription, error) {
+func (api *PublicFilterAPI) NewDeposits(
+	ctx context.Context,
+	crit ethereum.StateSyncFilter,
+) (*rpc.Subscription, error) {
 	notifier, supported := rpc.NotifierFromContext(ctx)
 	if !supported {
 		return &rpc.Subscription{}, rpc.ErrNotificationsUnsupported
@@ -67,8 +72,12 @@ func (api *PublicFilterAPI) NewDeposits(ctx context.Context, crit ethereum.State
 		for {
 			select {
 			case h := <-stateSyncData:
-				if crit.ID == h.ID || bytes.Compare(crit.Contract.Bytes(), h.Contract.Bytes()) == 0 ||
-					(crit.ID == 0 && crit.Contract == common.Address{}) {
+				if h == nil {
+					fmt.Println("h is nil ", time.Now())
+				}
+
+				if h != nil && (crit.ID == h.ID || bytes.Compare(crit.Contract.Bytes(), h.Contract.Bytes()) == 0 ||
+					(crit.ID == 0 && crit.Contract == common.Address{})) {
 					notifier.Notify(rpcSub.ID, h)
 				}
 			case <-rpcSub.Err():
