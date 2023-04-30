@@ -7,6 +7,8 @@ import (
 	"fmt"
 	"strings"
 
+	"google.golang.org/grpc"
+
 	"github.com/ethereum/go-ethereum/internal/cli/flagset"
 	"github.com/ethereum/go-ethereum/internal/cli/server/proto"
 )
@@ -111,7 +113,7 @@ func (d *DebugPprofCommand) Run(args []string) int {
 			req.Profile = profile
 		}
 
-		stream, err := clt.DebugPprof(ctx, req)
+		stream, err := clt.DebugPprof(ctx, req, grpc.MaxCallRecvMsgSize(1024*1024*1024))
 
 		if err != nil {
 			return err
@@ -129,8 +131,9 @@ func (d *DebugPprofCommand) Run(args []string) int {
 
 	// Only take cpu and heap profiles by default
 	profiles := map[string]string{
-		"heap": "heap",
-		"cpu":  "cpu",
+		"heap":  "heap",
+		"cpu":   "cpu",
+		"mutex": "mutex",
 	}
 
 	if !d.skiptrace {
