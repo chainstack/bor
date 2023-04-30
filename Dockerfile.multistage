@@ -3,7 +3,7 @@ FROM golang:1.19 as builder
 ARG BOR_DIR=/bor
 ENV BOR_DIR=$BOR_DIR
 
-RUN apt-get update && apt-get upgrade \
+RUN apt-get update && apt-get -y upgrade \
     && apt-get install -y build-essential git \
     && mkdir -p ${BOR_DIR}
 
